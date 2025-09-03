@@ -1,0 +1,7 @@
+name: onboarding
+
+build:
+  cmake: .
+  kconfig: ./Kconfig
+  depends:
+        - sensors

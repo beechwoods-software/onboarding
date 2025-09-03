@@ -1,0 +1,315 @@
+config ONBOARDING_CERTS
+    bool "use certificate credentials"
+    default n
+    help
+        "Use certificates for tls etc.."
+config ONBOARDING_CERTS_GENERATE_CERTS
+    bool "generate certificiates"
+    depends on ONBOARDING_CERTS
+    default n
+    help
+        "Generate certificates for device"
+
+config ONBOARDING_CERTS_DEVICE_ID
+    string "Device_ID for device"
+    default ""
+    depends on ONBOARDING_CERTS
+
+config ONBOARDING_WIFI
+    bool "Enable wifi onboarding"
+    select ONBOARDING_NVS
+    default n
+    help
+        "enable wifi for onboarding"
+
+config ONBOARDING_WEB_SERVER
+    bool "Enable web server"
+    depends on ONBOARDING_WIFI
+    select ONBOARDING_CERTS
+    default n
+    help
+        "enable a web server for configuration"
+
+config ONBOARDING_WEB_SERVER_HTTPS
+    bool "Enable tls for the web server"
+    default n
+    select NET_SOCKETS_SOCKOPT_TLS
+    help
+        "emable https connections for the web server
+ #    default 515765868
+config ONBOARDING_WEB_SERVER_CREDENTIALS_TAG
+    int "Web Server credentials tag"
+    default 12487381
+     help
+        Secure tag for the web servers credentials
+        See https://docs.zephyrproject.org/apidoc/latest/group__tls__credentials.html
+
+config ONBOARDING_CAPTIVE_PORTAL
+    bool "Enable a captive portal"
+    default n
+    depends on ONBOARDING_WEB_SERVER
+    depends on ONBOARDING_WIFI_AP
+    help
+        Enable a captive portal until a wifi session is established
+    
+config ONBOARDING_BLUETOOTH
+    bool "Enable bluetooth onboarding"
+    default n
+    help
+        "enable bluetooth for onboarding"
+
+config ONBOARDING_BLUETOOTH_BLE
+    bool "Enable bluetooth onboarding using BLE"
+    depends on ONBOARDING_BLUETOOTH
+    default n
+    help
+        "use BLE for bluetooth onboardig"
+
+config ONBOARDING_BLUETOOTH_GATT
+    bool "Enable bluetooth onboarding useing GATT"
+    depends on ONBOARDING_BLUETOOTH
+    default n
+    help
+        "use GATT for bluetooth onboarding"
+
+config ONBOARDING_NFC
+    bool "Enable NFC onboarding"
+    select LIBST25DV
+    select JSON_LIBRARY
+    default n
+    help
+        "Use NFC for onboarding"
+
+config ONBOARDING_SHELL
+    bool "Enable the onboarding shell"
+    select ONBOARDING_NVS
+    default n
+    help
+        "enable the onboading shell"
+
+config ONBOARDING_NVS
+    bool "Use presistant store"
+    select FLASH
+    select NVS
+    default n
+
+
+
+config HTTP_NUM_HANDLERS
+    int "Number of simultanious HTTP connections"
+    default 2
+    depends on ONBOARDING_WEB_SERVER
+    help
+      "The number of simultanious http connections"
+
+config ONBOARDING_WEB_STACK_SIZE
+    int "size of the stacks for processing conntections"
+    default 4096 if NET_SOCKETS_SOCKOPT_TLS
+    default 3072
+    help
+        "The size of the tcp processing stacks for the web server"
+
+config ONBOARDING_WIFI_SSID
+	string "WIFI SSID - Network name"
+    depends on ONBOARDING_WIFI
+	default "my_network"
+
+config ONBOARDING_WIFI_PSK
+	string "WIFI PSK - Network password key"
+    depends on ONBOARDING_WIFI
+	default "secret_passwd"
+
+config ONBOARDING_PRECONFIG_WIFI
+    bool "Pre configure wifi ssid and psk"
+    default n
+    help
+      setting the uses WIFI_SSID and WIFI_PSK as initial SSID and PSK
+
+config ONBOARDING_WIFI_AP
+    bool "Enable AP support for Wifi"
+    default n
+    depends on ONBOARDING_WIFI
+    
+config ONBOARDING_WIFI_AP_SSID
+    string "Wifi SSID for the WiFi AP"
+    depends on ONBOARDING_WIFI_AP
+    default "zephyr-"
+    help
+        This is the base for the wifi AP 6 digits of the MAC address will be appened to this string
+
+config ONBOARDING_WIFI_AP_ADDRESS
+    string "Ip address for the AP"
+    depends on ONBOARDING_WIFI_AP
+    default "192.168.1.1"
+    help
+        This is the IP address for the device when configured as an AP
+
+config ONBOARDING_WIFI_AP_PSK
+    string "Wifi PSK for the WiFi AP"
+    depends on ONBOARDING_WIFI_AP
+    default "Beechwoods"
+    help
+        This is the PSK for the wifi AP
+
+config ONBOARDING_WIFI_AP_DISABLE
+    bool "Disable AP on connect"
+    default y
+    depends on ONBOARDING_WIFI_AP
+    help
+        Disable the wifi AP when the wifi station connection is successful
+    
+config ONBOARDING_OTA
+    bool "Enable OTA"
+    default n
+    help
+        "Enable Over the Air updates"
+
+config ONBOARDING_OTA_NAME
+    string "Application Name"
+    help
+        "This is the name of the application"
+
+
+choice ONBOARDING_OTA_TYPE
+    depends on ONBOARDING_OTA
+    prompt "Select type of OTA"
+    default ONBOARDING_OTA_NONE
+
+config ONBOARDING_OTA_NONE
+    bool "No OTA"
+
+config ONBOARDING_OTA_UPDATEHUB
+    bool "Use updatehub.io OTA"
+
+config ONBOARDING_OTA_HAWKBIT
+    bool "Use Hawkbit OTA"
+    select SETTINGS
+    select HAWKBIT
+    select FLASH
+    select STREAM_FLASH
+    select IMG_MANAGER
+    select REBOOT
+    select NET_TCP
+    select NET_SOCKET
+    select NETWORKING
+    select DNS_RESOLVER
+    select BOOTLOADER_MCUBOOT
+    select SMF
+    select SMF_ANCESTOR_SUPPORT
+    select HWINFO
+    select JSON_LIBRARY
+    select HWINFO
+    select HTTP_CLIENT
+    help
+        Enable HAWKBIT OTA
+
+config ONBOARDING_OTA_MENDER
+    bool "Use Mender OTA"
+
+config ONBOARDING_OTA_AMAZON
+    bool "use Amazon OTA"
+
+config ONBOARDING_OTA_GOLIOTH
+    bool "Use Golioth OTA"
+    select GOLIOTH_FIRMWARE_SDK
+    select GOLIOTH_FW_UPDATE
+    select NETWORKING
+    select NET_IPV4
+    select STREAM_FLASH
+    select FLASH_MAP
+    select IMG_MANAGER
+    select COAP
+    select ZCBOR
+    select ONBOARDING_CERTS
+
+endchoice
+
+if ONBOARDING_OTA_UPDATEHUB
+configdefault UPDATEHUB
+    default y/mvu
+
+configdefault COAP
+    default y
+
+configdefault DNS_RESOLVER
+    default y
+
+configdefault JSON_LIBRARY
+    default y
+
+configdefault HWINFO
+    default y
+
+configdefault NET_SOCKETS_POLL_MAX
+    default 4
+
+configdefault MAIN_STACK_SIZE
+    default 4096
+
+configdefault SHELL_STACK_SIZE
+    default 4096
+endif
+
+if !ONBOARDING_OTA_GOLIOTH
+    #rsource "Kconfig.golioth"
+endif
+if ONBOARDING_OTA_GOLIOTH
+
+config GOLIOTH_PSK_ID
+	string "PSK ID"
+    depends on GOLIOTH_AUTH_METHOD_PSK
+	depends on !GOLIOTH_SAMPLE_SETTINGS
+	help
+	  Defines PSK ID used during DTLS handshake with Golioth server.
+
+config GOLIOTH_PSK
+	string "PSK"
+    depends on GOLIOTH_AUTH_METHOD_PSK
+	depends on !GOLIOTH_SAMPLE_SETTINGS
+	help
+	  Defines PSK used during DTLS handshake with Golioth server.
+
+config GOLIOTH_PSK_MAX_LEN
+    int "Maximum length of the psk"
+    default 48
+    depends on GOLIOTH_AUTH_METHOD_PSK
+    help
+        The maximum length of the golioth psk
+
+config GOLIOTH_PSK_ID_MAX_LEN
+    int "Maximum length of the psk_id"
+    default 48
+    depends on GOLIOTH_AUTH_METHOD_PSK
+    help
+        The maximum length of the golioth psk_id
+    
+#configdefault GOLIOTH_AUTH_METHOD_PSK
+#    default y
+
+endif
+
+    configdefault ZVFS_EVENTFD_MAX
+	int
+	default 17 if GOLIOTH_FW_UPDATE
+	default 7
+
+configdefault ZVFS_OPEN_MAX
+    default 20 if GOLIOTH_FW_UPDATE
+
+#config ONBOARDING_OTA_POLL_INTERVAL
+#    int "polling interval to update server in minutes"
+#    default 1440
+
+config ONBOARDING_DT
+    depends on CONFIG_ONBOARDING_OTA
+    bool "Enable digital Twin"
+    default n
+    help
+        Enables digitial twin support by the provider specified in ONBOARDING_OTA_TYPE
+
+rsource "st25dv/Kconfig"
+
+module = ONBOARDING
+module-str = "Onboarding"
+module-help = Enables logging for the onboarding module
+source "subsys/logging/Kconfig.template.log_config"
