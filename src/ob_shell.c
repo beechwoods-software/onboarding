@@ -20,7 +20,9 @@
 
 #include "ob_wifi.h"
 #include "ob_web_server.h"
+#ifdef CONFIG_ONBOARDING_OTA
 #include "ob_ota.h"
+#endif // CONFIG_ONBOARDING_OTA
 LOG_MODULE_DECLARE(ONBOARDING_LOG_MODULE_NAME, CONFIG_ONBOARDING_LOG_LEVEL);
 
 #define OB_HELP_WIFI_NAME "wifi name [name]"

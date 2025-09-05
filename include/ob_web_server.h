@@ -132,7 +132,7 @@ struct _value_action {
 /**
  * @brief This typedef provides an alias to the struct _value_action
  */
-typedef struct value_action value_action_t;
+typedef struct _value_action value_action_t;
 
 /**
  * @brief initialize the web server

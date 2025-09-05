@@ -722,7 +722,7 @@ _ob_wifi_ap_enable(void)
   net_ipv4_autoconf_init();
 #endif //CONFIG_NET_DHCPV4_SERVER
 #ifdef CONFIG_ONBOARDING_WEB_SERVER
-  //  start_web_server();
+  start_web_server();
 #endif // CONFIG_ONBOARDING_WEB_SERVER
   mHasAp = true;
   LOG_INF("AP mode done");
