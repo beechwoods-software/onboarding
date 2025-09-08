@@ -1,6 +1,7 @@
 /*
- * Copyright Beechwoods Software, Inc. 2023 brad@beechwoods.com
+ * Copyright Beechwoods Software, Inc. 2023 Brad Kemp
  * All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #pragma once
