@@ -1,6 +1,7 @@
 /*
- * Copyright 2025 Beechwoods Software, Inc brad@beechwoods.com
+ * Copyright 2025 Beechwoods Software, Inc Brad Kemp
  * All Rights Reserved
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifdef CONFIG_ONBOARDING_CERTS
