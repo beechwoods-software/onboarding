@@ -1,0 +1,3 @@
+[submodule "st25dv"]
+	path = st25dv
+	url = git@github.com:beechwoods-software/st25dv.git
