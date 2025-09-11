@@ -1,7 +1,7 @@
 /*
- * Copyright(C) 2024 Brad Kemp Beechwoods Software, Inc. 
+ * Copyright(C) 2024 Brad Kemp Beechwoods Software, Inc.
  * All Rights Reserved
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache 2.0
  */
 #pragma once
 #include <sys/types.h>

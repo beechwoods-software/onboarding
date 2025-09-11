@@ -1,7 +1,7 @@
 /*
  * Copyright Beechwoods Software, Inc. 2023 Brad Kemp
  * All Rights Reserved
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache 2.0
  */
 
 #pragma once
@@ -105,6 +105,8 @@ int ob_nvs_data_write(uint8_t domain, uint8_t id, void * buffer, int len);
 /**
  * @brief deletes the data in the nvs partition
  * This function deletes all records in the nvs partition
+ * @return 0 on success
+ * @return -1 on failure
  **/
 void ob_nvs_data_factory_reset();
 /**

@@ -307,7 +307,7 @@ config ONBOARDING_DT
     help
         Enables digitial twin support by the provider specified in ONBOARDING_OTA_TYPE
 
-#rsource "st25dv/Kconfig"
+rsource "st25dv/Kconfig"
 
 module = ONBOARDING
 module-str = "Onboarding"

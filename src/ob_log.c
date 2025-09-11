@@ -1,7 +1,7 @@
 /*
  * Copyright 2025 Beechwoods Software, Inc Brad Kemp
  * All Rights Reserved
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache 2.0
  */
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>

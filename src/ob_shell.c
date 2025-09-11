@@ -1,7 +1,7 @@
 /*
  * Copyright 2023 2024 Beechwoods Software, Inc Brad Kemp
  * All Rights Reserved
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache 2.0
  */
 
 #ifdef CONFIG_ONBOARDING_SHELL

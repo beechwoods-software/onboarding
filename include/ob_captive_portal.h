@@ -1,7 +1,7 @@
 /*
  * Copyright 2025 Beechwoods Software Inc, Inc brad@beechwoods.com
  * All Rights Reserved
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache 2.0
  */
 #pragma once
 /**
