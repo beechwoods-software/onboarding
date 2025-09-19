@@ -503,8 +503,6 @@ ob_wifi_init(void)
 
   wifi_inited=true;
 #ifdef CONFIG_ONBOARDING_WIFI_AP
-  // Start the AP
-  k_work_schedule(&start_ap_work, AP_WORK_DELAY);
   bool done = false;
   bool isAP;
   while(!done) {
@@ -530,13 +528,17 @@ ob_wifi_init(void)
 #endif // CONFIG_ONBOARDING_RECONFIG_WIFI
     }
     if(isAP) {
+      // Start the AP
+      k_work_schedule(&start_ap_work, AP_WORK_DELAY);
       LOG_DBG("waiting on AP");
       k_sem_take(&wifi_ap_sem, K_FOREVER);
       LOG_DBG("Ready to try reading address again");
       done = true;
     } else {
       LOG_DBG("Connecting");
-      ob_wifi_connect();
+      if(ob_wifi_connect()< 0) {
+        ob_wifi_ap_enable();
+      }
       done = true;
 
     }
@@ -759,11 +761,12 @@ int ob_wifi_connect(void)
     LOG_ERR("wifi_init not called\n");
     return -1;
   }
+
+
   cnx_params.ssid_length = gSSID_len;
   cnx_params.psk_length = gPSK_len;
 
   LOG_WRN("WIFI try connecting to %s(%s)...", gSSID, gPSK);
-  k_msleep(1000);
   /* Let's wait few seconds to allow wifi device be on-line */
   while (nr_tries-- > 0) {
     ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, iface, &cnx_params,
@@ -777,10 +780,6 @@ int ob_wifi_connect(void)
   }
   if(ret == 0) {
     k_sem_take(&wifi_connect_sem, K_FOREVER);
-#ifdef CONFIG_ONBOARDING_WIFI_AP_DISABLE
-    LOG_DBG("Disabling wifi");
-    ob_wifi_ap_disable();
-#endif // CONFIG_ONBOARDING_WIFI_AP_DISABLE
   }
 #ifdef CONFIG_USE_READY_LED
   ready_led_off();
