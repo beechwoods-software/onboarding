@@ -14,7 +14,6 @@
 #ifdef CONFIG_WIFI_NM
 #include <zephyr/net/wifi_nm.h>
 #endif
-#include "ob_web_server.h"
 
 
 #include <zephyr/net/wifi_mgmt.h>
@@ -518,7 +517,7 @@ ob_wifi_init(void)
       LOG_ERR("Setting SSID to %s", gSSID);
 #else
       isAP = true;
-#endif
+#endif // CONFIG_ONBOARDING_PRECONFIG_WIFI
     }
 
     if((gPSK_len = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, gPSK, sizeof(gPSK))) < 0) {
@@ -528,12 +527,13 @@ ob_wifi_init(void)
       gPSK_len = strlen(gPSK);
 #else
       isAP = true;
-#endif
+#endif // CONFIG_ONBOARDING_RECONFIG_WIFI
     }
     if(isAP) {
       LOG_DBG("waiting on AP");
       k_sem_take(&wifi_ap_sem, K_FOREVER);
       LOG_DBG("Ready to try reading address again");
+      done = true;
     } else {
       LOG_DBG("Connecting");
       ob_wifi_connect();
@@ -598,9 +598,6 @@ ob_wifi_ap_disable(void)
   LOG_DBG("ap disable iface %p", iface);
 #ifdef CONFIG_NET_DHCPV4_SERVER
   struct in_addr addr;
-#ifdef CONFIG_ONBOARDING_WEB_SERVER
-  //  stop_web_server();
-#endif // CONFIG_ONBOARDING_WEB_SERVER
   if (net_addr_pton(AF_INET, wifi_ap_address, &addr)) {
 
       NET_ERR("Invalid address: %s", wifi_ap_address);
@@ -722,10 +719,9 @@ _ob_wifi_ap_enable(void)
 #else
   net_ipv4_autoconf_init();
 #endif //CONFIG_NET_DHCPV4_SERVER
-#ifdef CONFIG_ONBOARDING_WEB_SERVER
-  start_web_server();
-#endif // CONFIG_ONBOARDING_WEB_SERVER
   mHasAp = true;
+  k_sem_give(&wifi_ap_sem);
+
   LOG_INF("AP mode done");
   return;
 }

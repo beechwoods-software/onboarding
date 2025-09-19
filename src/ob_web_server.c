@@ -201,7 +201,6 @@ ssize_t sendall(int sock, const void *buf, size_t len)
       buf = (const char *)buf + out_len;
       len -= out_len;
 	}
-
 	return 0;
 }
 /**
@@ -276,8 +275,9 @@ typedef enum page_type {
 static void display_404(int client)
 {
   int rc;
+  LOG_DBG("404 len %d client %d", strlen(http1_1_404), client);
   const char *header404 =  http1_1_404;
-  rc = sendall(client, header404, strlen(header404));
+  rc = sendall(client, http1_1_404, strlen(header404));
   if(rc < 0) {
     LOG_ERR("HTTP 404 Header send failed %d",errno);
   }
@@ -746,6 +746,13 @@ static int process_tcp(int *sock, int *accepted)
                                              THREAD_PRIORITY,
                                              0, K_NO_WAIT);
   }
+  char thread_name[20];
+  int rc;
+  sprintf(thread_name, "web_server_%d", slot);
+  if((rc = k_thread_name_set(tcp4_handler_tid[slot], thread_name)) < 0) {
+    LOG_ERR("Thread naming failed %d", rc);
+  }
+
 #endif
 
 #ifdef CONFIG_ONBOARDING_LOG_LEVEL_DBG

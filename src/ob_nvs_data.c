@@ -111,7 +111,6 @@ ob_nvs_data_init(void)
   return 0;
 }
 
-
 /**
  * @brief Read a data element
  */
@@ -124,7 +123,7 @@ int ob_nvs_data_read(uint8_t domain, uint8_t id, void * buffer, int len)
   nvs_id.domain_id.id =  id;
   rc = nvs_read(&fs, nvs_id.id, buffer, len);
   if (rc < 0) {
-    LOG_ERR("read for %d failed: %d", id, errno);
+    LOG_ERR("read for %d failed: %d", nvs_id.id, errno);
   }
   return rc;
 }
@@ -138,7 +137,7 @@ int ob_nvs_data_write(uint8_t domain, uint8_t  id, void * buffer, int len)
   nvs_id_t nvs_id;
   nvs_id.domain_id.domain = domain;
   nvs_id.domain_id.id =  id;
-  LOG_DBG("writing %d %s", len, (char *)buffer);
+  LOG_DBG("writing %d %s domain %d id %d domainid 0x%x", len, (char *)buffer, domain, id, nvs_id.id);
   rc = nvs_write(&fs, nvs_id.id, buffer, len);
   if(rc < 0) {
     LOG_ERR("nvs write failed %d for id %d", errno, id);
