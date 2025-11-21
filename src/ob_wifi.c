@@ -54,13 +54,13 @@ ssid_item_t *ssid_tail = NULL;
 bool mHasAp = false;
 
 /** @brief the SSID to connect with */
-static char gSSID[WIFI_SSID_MAX_LEN];
+char gSSID[WIFI_SSID_MAX_LEN];
 /** @brief the length of the connect SSID */
-static int gSSID_len;
+int gSSID_len;
 /** @brief the PSK for the connect SSID */
-static char gPSK[WIFI_PSK_MAX_LEN];
+char gPSK[WIFI_PSK_MAX_LEN];
 /** @brief ths length of the PSK for the connect SSID */
-static int gPSK_len;
+int gPSK_len;
 
 #ifdef CONFIG_ONBOARDING_WIFI_AP
 #ifdef CONFIG_NET_DHCPV4_SERVER
@@ -94,8 +94,12 @@ scan_done_callback_t done_callback = NULL;
 /** @brief callback called when an IPV4 address is added  */
 address_add_callback_t address_add_callback = NULL;
 
-char *
-Mac2String(uint8_t * macp)
+#ifdef CONFIG_ONBOARDING_WIFI_AP
+/**
+ * @brief Converts a binary mac address to a string
+ * @param macp A 6 byte array representing the 6 octets of the MAC address
+ */
+static char *Mac2String(uint8_t * macp)
 {
   static char macbuf[18];
   snprintf(macbuf, sizeof(macbuf),
@@ -103,9 +107,14 @@ Mac2String(uint8_t * macp)
            macp[0], macp[1], macp[2], macp[3], macp[4], macp[5]);
   return macbuf;
 }
+#endif //CONFIG_ONBOARDING_WIFI_AP
 
-bool
-get_mac_address(uint8_t * buffer, int len)
+/**
+ * @brief Obtains the MAC address of the WiFi interface
+ * @param buffer A buffer to place the binary MAC address in (must be at least 6 bytes)
+ * @param len the length of the buffer in bytes
+ */
+bool get_mac_address(uint8_t * buffer, int len)
 {
   struct net_if *iface = NULL;
   struct net_linkaddr * linkaddr;
@@ -126,7 +135,6 @@ get_mac_address(uint8_t * buffer, int len)
 
   return rc;
 }
-
 
 bool ob_wifi_HasAP(void)
 {
@@ -167,7 +175,7 @@ ssid_free_item(ssid_item_t * it)
  * @param ssid_length lenght of the SSID name
  */
 static void
-ssid_add_item(const char * ssid, int ssid_length)
+ssid_add_item(const char * ssid, int ssid_length, bool security, int signal_strength)
 {
   ssid_item_t * it = NULL;
   if(NULL != ssid_head) {
@@ -193,8 +201,12 @@ ssid_add_item(const char * ssid, int ssid_length)
       return;
     }
     strncpy(it->ssid, ssid, ssid_length);
+
     it->ssid[ssid_length] = '\0';
-    //    it->len = ssid_length;
+    it->len = ssid_length;
+    it->security = security;
+    it->signal_strength = signal_strength;
+
     if(NULL == ssid_head) {
       ssid_head = it;
       ssid_tail = it;
@@ -301,6 +313,43 @@ static void ethernet_mgmt_event_handler(struct net_mgmt_event_callback *cb,
   }
 }
 
+static void handle_wifi_scan_result(struct net_mgmt_event_callback *cb)
+{
+  const struct wifi_scan_result *entry =
+    (const struct wifi_scan_result *)cb->info;
+  // There are obviously more sophistocated ways to convert RSSI
+  // into a 0-1-- scale signal strength, but this is good enough for the
+  // onboarding ui.
+  int strength = entry->rssi + 130;
+  if (strength > 100) {
+	  strength = 100;
+  }
+  ssid_add_item(entry->ssid,
+	        entry->ssid_length,
+	        (entry->security == WIFI_SECURITY_TYPE_NONE ? 0 : 1),
+	        strength);
+}
+
+static void handle_wifi_scan_done(struct net_mgmt_event_callback *cb)
+{
+  LOG_DBG("Wifi scan done");
+  if(NULL != done_callback) {
+    (*done_callback)(ssid_head);
+  }
+  else {
+	  LOG_ERR("Error: done_callback is NULL!");
+  }
+
+  ssid_init_list();
+}
+
+static void handle_wifi_iface_status(struct net_mgmt_event_callback *cb)
+{
+  const struct wifi_iface_status *status = (const struct wifi_iface_status *)cb->info ;
+  LOG_INF("Iface status for %s", status->ssid);
+}
+
+
 /**
  * @brief Callback for wifi network management events
  *
@@ -314,23 +363,17 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
   LOG_DBG("Got event 0x%llx", mgmt_event);
   const struct wifi_status *status =
 		(const struct wifi_status *)cb->info;
-  const struct wifi_scan_result *entry =
-    (const struct wifi_scan_result *)cb->info;
   switch (mgmt_event) {
   case NET_EVENT_WIFI_SCAN_RESULT:
-    ssid_add_item(entry->ssid, entry->ssid_length);
+    handle_wifi_scan_result(cb);
     break;
 
   case NET_EVENT_WIFI_SCAN_DONE:
-    LOG_DBG("Wifi scan done");
-    if(NULL != done_callback) {
-      (*done_callback)(ssid_head);
-    }
-    ssid_init_list();
+    handle_wifi_scan_done(cb);
     break;
 
   case NET_EVENT_WIFI_IFACE_STATUS:
-    LOG_INF("Iface status for %s", ((const struct wifi_iface_status *)(cb->info))->ssid);
+    handle_wifi_iface_status(cb);
     break;
 
   case NET_EVENT_WIFI_CONNECT_RESULT:

@@ -26,7 +26,21 @@ struct ssid_item {
    * @brief the name of the ssid
    */
   char * ssid;
-  //  int lenf;
+  /**
+   * @var int len
+   * @brief length of the ssid
+   */
+  int len;
+  /**
+   * @var int signal_strength
+   * @brief the signal strenth of the wifi network (0-100 scale)
+   */
+  int signal_strength;
+  /**
+   * @var bool security
+   * @brief boolean indicating whether the network is secure or open
+   */
+  bool security;
 };
 /**
  * @brief alias for a struct ssid_item
@@ -74,6 +88,12 @@ void set_address_add_callback(address_add_callback_t callback);
  */
 void set_scan_done_callback(scan_done_callback_t callback);
 /**
+ * @brief provide a linked list when a wifi scan completes.
+ *
+ * @param pointer to the linked list of scan items
+ */
+void scan_complete(ssid_item_t *item);
+/**
  * @brief conntect wifi to an access point
  *
  * @note the SSID and PSK for the target station are stored in ob_nvs_data
@@ -113,18 +133,7 @@ void ob_wifi_deinit(void);
  */
 bool ob_wifi_HasAP(void);
 
-
-//extern struct k_work_delayable start_ap_work;
 #define AP_WORK_DELAY K_MSEC(500)
-
-/**
- * @brief convert a MAC address to a C string
- * @details not thread safe returns pointer to static buffer
- *
- * @param macp Pointer to MAC address
- * @return Pointer to character buffer with MAC address as a string
- */
-char * Mac2String(uint8_t * macp);
 
 /**
  * @brief get the MAC address of the devices AP interface
@@ -135,3 +144,9 @@ char * Mac2String(uint8_t * macp);
  * @result return true if successful false on failure
  */
 bool get_mac_address(uint8_t * buffer, int len);
+
+/** Globals representing the SSID, PSK and respective length of those strings */
+extern char gSSID[];
+extern int gSSID_len;
+extern char gPSK[];
+extern int gPSK_len;

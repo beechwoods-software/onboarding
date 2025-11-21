@@ -947,7 +947,9 @@ INPUT                  = ../src/ob_nvs_data.c ../include/ob_nvs_data.h \
                          ../src/ob_wifi.c ../include/ob_wifi.h \
                          ../src/ob_web_server.c ../include/ob_web_server.h \
                          ../src/ob_captive_portal.c ../include/ob_captive_portal.h \
-                        ../src/ob_shell.c
+                        ../src/ob_shell.c ../src/onboarding_bluetooth.c \
+			../src/onboarding_bluetooth_gatt.c \
+			../include/onboarding_bluetooth.h ../include/onboarding_bluetooth_gatt.h
     
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
