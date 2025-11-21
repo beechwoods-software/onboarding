@@ -53,26 +53,6 @@ obb_mode_t *obb_modes[] = {
 
 #define OBB_MAX  4
 
-#ifndef CONFIG_ONBOARDING_BLUETOOTH_GATT
-
-static k_timeout_t adv_timeout(void)
-{
-  uint32_t timeout;
-
-#if 1
-  return K_FOREVER;
-#else
-  if (bt_rand(&timeout, sizeof(timeout)) < 0) {
-    return 10 * MSEC_PER_SEC;
-  }
-  
-  timeout %= (10 * MSEC_PER_SEC);
-  
-  return K_MSEC(timeout + (1 * MSEC_PER_SEC));
-#endif
-}
-#endif //!CONFIG_ONBOARDING_BLUETOOTH_GATT
-
 void foreach_obb(obb_mode_type_t type)
 {
   
