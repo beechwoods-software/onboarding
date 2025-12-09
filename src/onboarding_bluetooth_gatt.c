@@ -14,8 +14,14 @@
 #include <onboarding_bluetooth.h>
 #include <onboarding_bluetooth_gatt.h>
 #include <ob_wifi.h>
+#include <ob_nvs_data.h>
 
 #include <zephyr/logging/log.h>
+
+
+void send_ap_list_work_handler(struct k_work *work);
+K_WORK_DEFINE(ap_list_notify_work, send_ap_list_work_handler);
+struct bt_conn *work_handler_conn_pointer;
 
 LOG_MODULE_DECLARE(ONBOARDING_LOG_MODULE_NAME, CONFIG_ONBOARDING_LOG_LEVEL);
                    
@@ -72,6 +78,7 @@ struct ob_current_ap {
 
 static const struct json_obj_descr current_ap_set_json_descr[] = {
   JSON_OBJ_DESCR_PRIM(struct ob_current_ap, ssid, JSON_TOK_STRING),
+  JSON_OBJ_DESCR_PRIM(struct ob_current_ap, error, JSON_TOK_STRING),  
 };
 
 struct ob_set_ap {
@@ -97,9 +104,7 @@ static char ap_list_data[2048] = {
 };
 
 static struct ob_current_ap current_ap;
-static char current_ap_data[256] = {
-	'{','"','s','s','i','d','"',':','"', '"',',',' ','"','e','r','r','o','r','"',':','"','"','}'
-};
+static char current_ap_data[256] = "{\"ssid\":\"\", \"error\":\"\"}";
 
 /* Primary Service Declaration */
 BT_GATT_SERVICE_DEFINE(primary_service,
@@ -197,33 +202,70 @@ static ssize_t write_current_ap(struct bt_conn *conn,
 
 char uuid_str[BT_UUID_STR_LEN];
 
+void send_ap_list_work_handler(struct k_work *work)
+{
+#ifdef CONFIG_ONBOARDING_WIFI
+
+	  scan_and_update_list();
+	  LOG_DBG("ap_list_data = \"%s\"", ap_list_data);
+#endif // CONFIG_ONBOARDING_WIFI  
+
+	  struct bt_conn *conn = work_handler_conn_pointer;
+	  size_t offset = 0;
+	  size_t total_len = strlen(ap_list_data);
+
+          // Standard MTU overhead is usually 3 bytes (Opcode + Handle)
+	  // If you haven't negotiated a large MTU, this might be ~20 bytes payload.
+	  // If MTU is 247, chunk_size can be 244.
+	  uint16_t chunk_size = bt_gatt_get_mtu(conn) - 3; 
+	  LOG_DBG("total_len=%d  chunk_size = %d", total_len, chunk_size);
+	  
+	  while (offset < total_len) {
+		  size_t len_to_send = total_len - offset;
+		  if (len_to_send > chunk_size) {
+			  len_to_send = chunk_size;
+		  }
+	  
+		  struct bt_gatt_notify_params params = {0};
+		  params.attr = &primary_service.attrs[1]; // Index of your Characteristic Attribute
+		  params.data = &ap_list_data[offset];
+		  params.len = len_to_send;
+		  params.func = NULL; // Optional completion callback
+
+		  // Attempt to send
+		  LOG_DBG("Calling bt_gatt_notify_cb().  offset=%d len_to_send=%d ", offset, len_to_send);
+		  int err = bt_gatt_notify_cb(conn, &params);
+
+		  if (err == -ENOMEM) {
+			  // Buffer full. Wait a tiny bit and retry the SAME chunk.
+			  k_sleep(K_MSEC(10));
+			  continue; 
+		  } else if (err < 0) {
+			  LOG_ERR("Error sending notification: %d\n", err);
+			  break;
+		  }
+
+		  // Success, move to next chunk
+		  offset += len_to_send;
+        
+		  // Optional: Yield briefly to allow the stack to process
+		  k_yield(); 
+	  }
+}
+
 static ssize_t read_aps(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                         void *buf, uint16_t len, uint16_t offset)
 {
   int rc = 0; // Number of bytes read
   
-  LOG_DBG("READ AP LIST");
+  LOG_DBG("READ AP LIST (really just trigger a set of notifications).");
 
-#ifdef CONFIG_ONBOARDING_WIFI
-
-  // Only actually scan and update the list at the beginning
   if (offset == 0) {
-	  scan_and_update_list();
+	  work_handler_conn_pointer = conn;
+	  k_work_submit(&ap_list_notify_work);
   }
-#endif // CONFIG_ONBOARDING_WIFI  
 
-  const char *value = attr->user_data;
-
-  LOG_DBG("Calling bt_gatt_attr_read(conn, attr, buf=0x%x, len=%d, offset=%d, value=0x%x, value_len=%d",
-	  (uint32_t) buf, len, offset, (uint32_t) value, strlen(ap_list_data));
-  rc = bt_gatt_attr_read(conn, attr, buf, len, offset, value,
-			 strlen(ap_list_data));
-  LOG_DBG("strlen(value) = %d", strlen(value));
-  LOG_DBG("READ AP LIST (%d BYTES)", rc);
-
-  LOG_DBG("read_aps");
-  bt_uuid_to_str(attr->uuid,uuid_str, BT_UUID_STR_LEN);
-  LOG_DBG("  len %d offset %d from %s", len, offset, uuid_str);
+  rc = bt_gatt_attr_read(conn, attr, buf, len, offset, NULL, 0);
 
   return rc;
 }
@@ -282,10 +324,10 @@ static void ob_join_network(struct bt_conn *conn, const struct bt_gatt_attr *att
   current_ap.ssid = ssid;
   current_ap.error = "";
   
-  int result = json_obj_encode_buf(current_ap_set_json_descr, ARRAY_SIZE(current_ap_set_json_descr),
-                                    &current_ap, current_ap_data, ARRAY_SIZE(current_ap_data));
-  if (0 > result) {
-    LOG_DBG("    PROBLEM ENCODING NEW AP TO JSON (err: %d)", result);
+  int json_encode_result = json_obj_encode_buf(current_ap_set_json_descr, ARRAY_SIZE(current_ap_set_json_descr),
+					       &current_ap, current_ap_data, ARRAY_SIZE(current_ap_data));
+  if (0 > json_encode_result) {
+    LOG_DBG("    PROBLEM ENCODING NEW AP TO JSON (err: %d)", json_encode_result);
   }
   LOG_DBG("    CURRENT AP:  %s", current_ap_data);
 
@@ -294,18 +336,52 @@ static void ob_join_network(struct bt_conn *conn, const struct bt_gatt_attr *att
   strcpy(gPSK, passcode);
   gPSK_len = strlen(gPSK);
 
-  ob_wifi_connect();
+  int connect_rc = ob_wifi_connect(); 
+  if (connect_rc == 0) {
+    LOG_DBG("Successfully connected to SSID \"%s\"", gSSID);
 
-  // DMR: Still need to write values to NVS
-  
+    int nvs_rc;
+    if((nvs_rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID, ssid, strlen(ssid))) < 0) {
+      LOG_ERR("Unable to save SSID %d", nvs_rc);
+    }
+    if((nvs_rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, passcode, strlen(passcode))) < 0) {
+      LOG_ERR("Unable to save PSK %d", nvs_rc);
+    }    
+  }
+  else {
+    LOG_ERR("Failed to connect to SSID \"%s\"", gSSID);
+    current_ap.error="Failed to connect.";
+
+    LOG_DBG("Calling json_obj_encode_buf to encode the error message");
+    json_encode_result = json_obj_encode_buf(current_ap_set_json_descr, ARRAY_SIZE(current_ap_set_json_descr),
+					     &current_ap, current_ap_data, ARRAY_SIZE(current_ap_data));
+    LOG_DBG("Reuturning from json_obj_encode_buf with return value %d", json_encode_result);
+    if (0 > json_encode_result) {
+      LOG_ERR("    PROBLEM ENCODING FAILED AP TO JSON (err: %d)", json_encode_result);
+    }
+  }
+  LOG_DBG("Notifying current_ap_data=%s", current_ap_data);
   bt_gatt_notify(conn, attr, current_ap_data, strlen(current_ap_data));
 }
+
+#define MIN_SCAN_INTERVAL_MS 5000
 
 static void scan_and_update_list()
 {
   int rc = 0;
-  
+
+  static uint32_t most_recent_scan_time = 0;
+
+  uint32_t new_scan_time = k_uptime_get_32();
+
+  // Don't do another scan if we've already done one recently 
+  if (((new_scan_time - most_recent_scan_time) > MIN_SCAN_INTERVAL_MS)
+      && ap_list_count > 0) {
+	  return;
+  }
+
   ob_wifi_scan();
+  most_recent_scan_time = new_scan_time;
   
   if((rc = k_sem_take(&scan_semaphore, SCAN_TIMEOUT)) < 0) {
     LOG_ERR("Scan timed out %d",rc);

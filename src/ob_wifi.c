@@ -35,6 +35,8 @@ static struct net_mgmt_event_callback ipv4_mgmt_cb;
 static struct net_mgmt_event_callback ethernet_mgmt_cb;
 /** @brief indicates that the wifi module hs been initialized */
 static bool wifi_inited = false;
+/** @brief indicates whether connection request succeded (including dhcp response) or failed */
+static bool wifi_connect_status_succeded = false;
 
 /** @brief a semaphore released after a wifi connection completes */
 static K_SEM_DEFINE(wifi_connect_sem, 0, 1);
@@ -245,8 +247,8 @@ static void ipv4_mgmt_event_handler(struct net_mgmt_event_callback *cb,
       LOG_ERR("DHCP  request failed (%d)(%d:%d:%d)", status->status, status->conn_status, status->disconn_reason, status->ap_status);
     } else {
       LOG_INF("DHCP bound");
+      wifi_connect_status_succeded = true;
       k_sem_give(&wifi_connect_sem);
-
     }
     break;
 
@@ -381,13 +383,13 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
 
     if (status->status) {
       LOG_ERR("Connect result request failed (%d)(%d:%d:%d)", status->status, status->conn_status, status->disconn_reason, status->ap_status);
+      wifi_connect_status_succeded = false;
+      k_sem_give(&wifi_connect_sem);
     } else {
       LOG_INF("WIFI Connected");
 #ifndef CONFIG_ESP32_STA_AUTO_DHCP
       net_dhcpv4_start(iface);
 #endif
-      // esp32 waits until dhcp bound
-      //    k_sem_give(&wifi_connect_sem);
     }
     break;
 
@@ -397,6 +399,8 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
     ready_led_color(255,0,0);
     ready_led_set(READY_LED_PANIC);
 #endif
+    wifi_connect_status_succeded = false;
+    k_sem_give(&wifi_connect_sem);
     break;
 
   case NET_EVENT_WIFI_DISCONNECT_COMPLETE:
@@ -822,13 +826,20 @@ int ob_wifi_connect(void)
     k_msleep(1000);
   }
   if(ret == 0) {
+    LOG_DBG("Waiting on wifi_connect_sem.....");
     k_sem_take(&wifi_connect_sem, K_FOREVER);
+    LOG_DBG("wifi_connect_sem released.");
   }
 #ifdef CONFIG_USE_READY_LED
   ready_led_off();
 #endif
-
-  LOG_INF("Wifi Connected");
+  if (wifi_connect_status_succeded) {
+    LOG_INF("Wifi Connected");
+  }
+  else {
+    LOG_INF("Wifi Failed to Connect");
+    ret = -1;
+  }
   return ret;
 }
 
