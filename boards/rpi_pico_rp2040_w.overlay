@@ -23,7 +23,7 @@
 			read-only;
 		};
 	
-		storage_partition: partition@1FA000 {
+		storage_partition: partition@1F0000 {
 			label = "storage_partition";
 			reg = < 0x1F0000 0x6000 >;
 		};
