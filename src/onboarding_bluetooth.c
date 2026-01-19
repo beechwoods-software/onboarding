@@ -208,10 +208,9 @@ static void le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t l
 
 		printk("************************** Connection parameters updated!	\n\
 		Connected to: %s						\n\
-		New Connection Interval: %u				\n\
 		New Slave Latency: %u					\n\
 		New Connection Supervisory Timeout: %u	\n",
-			   addr, info.le.interval, info.le.latency, info.le.timeout);
+			   addr, info.le.latency, info.le.timeout);
 	}
 }
 

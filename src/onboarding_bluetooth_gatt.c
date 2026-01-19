@@ -341,10 +341,10 @@ static void ob_join_network(struct bt_conn *conn, const struct bt_gatt_attr *att
     LOG_DBG("Successfully connected to SSID \"%s\"", gSSID);
 
     int nvs_rc;
-    if((nvs_rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID, ssid, strlen(ssid))) < 0) {
+    if((nvs_rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_SSID, ssid, strlen(ssid))) < 0) {
       LOG_ERR("Unable to save SSID %d", nvs_rc);
     }
-    if((nvs_rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, passcode, strlen(passcode))) < 0) {
+    if((nvs_rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_PSK, passcode, strlen(passcode))) < 0) {
       LOG_ERR("Unable to save PSK %d", nvs_rc);
     }    
   }

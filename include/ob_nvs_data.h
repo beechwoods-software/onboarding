@@ -35,23 +35,6 @@ typedef union _nvs_id {
 } nvs_id_t;
 
 /**
- * @brief An element in a linked list of known NVS data record types.
- * @struct _nvs_record_data
- * The struct is used to track the known NVS data record types to allow their erasure on a factory reset.
- * This item is created during the ob_nvs_data_register_ids call.
- * @see ob_nvs_data_register_ids
- */
-typedef struct _nvs_record_data
-{
-  /** @brief a pointer to the next data element */
-  struct _nvs_record_data * next;
-  /** @brief The domain of this element */
-  uint8_t domain;
-  /** @brief The number of data record identifiers. Identifiers start at 0 */
-  int num;
-} nvs_record_data_t;
-
-/**
  * @brief initialize flash file system
  * This function initilizes a flash file system
  * found on the storage_partion dts entry. @n
@@ -60,21 +43,6 @@ typedef struct _nvs_record_data
  * @return -1 on failure
  */
 int ob_nvs_data_init(void);
-
-/**
- * @brief Register flash IDs for a domain @n
- * This function registers flash Ids for a domain. @n
- * An ID contains a domain identifier and a data identifier. @n
- * The NVS ID is created by shifting the domain identfier by 8 and oring in the data identifier. @n
- * IDs registered in this manner will be erased during a factory reset
- * @param domain - the domain identifier
- * @param num - the number of flash IDs in this domain
- * @return 0 success
- * @return -EEXIST domain already exists
- * @return -ENOMEM if memory allocation fails
- * @return -EIO on unscpecified error
- */
-int ob_nvs_data_register_ids(uint8_t domain, uint8_t num);
 
 /**
  * @brief This function reads a record from  nvs storage
@@ -87,7 +55,7 @@ int ob_nvs_data_register_ids(uint8_t domain, uint8_t num);
  * @return 0 on success
  * @return -1 on error - see errno
  **/
-int ob_nvs_data_read(uint8_t domain, uint8_t id, void * buffer, int len);
+int ob_nvs_data_read(const char *name, void * buffer, int len);
 
 /**
  * @brief write a record to the nvs store
@@ -101,7 +69,7 @@ int ob_nvs_data_read(uint8_t domain, uint8_t id, void * buffer, int len);
  * @return the number of bytes written.
  * @return -1 on error
  **/
-int ob_nvs_data_write(uint8_t domain, uint8_t id, void * buffer, int len);
+int ob_nvs_data_write(const char *name, void * buffer, int len);
 /**
  * @brief deletes the data in the nvs partition
  * This function deletes all records in the nvs partition
