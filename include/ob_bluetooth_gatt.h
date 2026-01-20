@@ -4,6 +4,6 @@
  */
 
 #pragma once
-#include "onboarding_bluetooth.h"
+#include "ob_bluetooth.h"
 
 extern struct obb_mode obb_mode_gatt;

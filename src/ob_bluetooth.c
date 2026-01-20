@@ -15,8 +15,8 @@
 #include <zephyr/settings/settings.h>
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi_mgmt.h>
-#include "onboarding_bluetooth.h"
-#include "onboarding_bluetooth_gatt.h"
+#include "ob_bluetooth.h"
+#include "ob_bluetooth_gatt.h"
 #include "ob_wifi.h"
 
 #include <zephyr/logging/log.h>

@@ -490,7 +490,7 @@ ob_wifi_init(void)
 
 #ifdef CONFIG_NET_HOSTNAME_DYNAMIC
   /* Only read the hostname if the app has set dynamic hostnames */
-  if((len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_HOSTNAME, hostname, sizeof(hostname))) < 0) {
+  if((len = ob_nvs_data_read(NVS_SETTINGS_ID_HOSTNAME, hostname, sizeof(hostname))) < 0) {
     LOG_WRN("Unable to read hostname %d setting to %s", len, net_hostname_get());
   } else {
     len = net_hostname_set(hostname, strlen(hostname));

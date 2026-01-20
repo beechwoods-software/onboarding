@@ -58,7 +58,7 @@ extern char  wifi_ap_address[];
 /** @brief the data record identifier for the PSK of the SSID to connect with */
 #define NVS_SETTINGS_ID_WIFI_PSK      "ob/wifi/psk"
 /** @brief the data record identifier for the host name of the device */
-#define NVS_SETTINGS_ID_WIFI_HOSTNAME "ob/ip/hostname"
+#define NVS_SETTINGS_ID_HOSTNAME "ob/hostname"
 
 /**
  * @brief signature for the callback when a wifi scan is completed

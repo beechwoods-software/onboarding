@@ -11,8 +11,8 @@
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/data/json.h>
 
-#include <onboarding_bluetooth.h>
-#include <onboarding_bluetooth_gatt.h>
+#include <ob_bluetooth.h>
+#include <ob_bluetooth_gatt.h>
 #include <ob_wifi.h>
 #include <ob_nvs_data.h>
 
