@@ -53,16 +53,12 @@ typedef struct ssid_item ssid_item_t;
 /** @brief string of the IP address to use for the AP */
 extern char  wifi_ap_address[];
 
-/** @brief the nvs domain id for WIFI */
-#define NVS_DOMAIN_WIFI      1
 /** @brief the data record identifier for the SSID to connect with */
-#define NVS_ID_WIFI_SSID     0
+#define NVS_SETTINGS_ID_WIFI_SSID     "ob/wifi/ssid"
 /** @brief the data record identifier for the PSK of the SSID to connect with */
-#define NVS_ID_WIFI_PSK      1
+#define NVS_SETTINGS_ID_WIFI_PSK      "ob/wifi/psk"
 /** @brief the data record identifier for the host name of the device */
-#define NVS_ID_WIFI_HOSTNAME 2
-/** @brief the data record identifier for the end of the data record identifiers */
-#define NVS_ID_WIFI_SENTINAL 3
+#define NVS_SETTINGS_ID_HOSTNAME "ob/hostname"
 
 /**
  * @brief signature for the callback when a wifi scan is completed

@@ -216,23 +216,23 @@ static int post_wifi_setup_page(int client, web_page_t * wp)
 {
   int rc;
   if((rc =  ob_ws_process_post(client, wifi_setup_attrib, NUM_WIFI_SETUP_ATTRIBUTES,wp)) >= 0) {
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID,
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_SSID,
                             wifi_setup_attrib[WIFI_SETUP_ATTRIB_SSID].valuebuffer,
                             strlen(wifi_setup_attrib[WIFI_SETUP_ATTRIB_SSID].valuebuffer))) < 0) {
       LOG_ERR("Unable to save SSID %d", rc);
     }
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK,
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_PSK,
                             wifi_setup_attrib[WIFI_SETUP_ATTRIB_PASSWORD].valuebuffer,
                             strlen(wifi_setup_attrib[WIFI_SETUP_ATTRIB_PASSWORD].valuebuffer))) < 0) {
       LOG_ERR("Unable to save PSK %d", rc);
     }
 #ifdef CONFIG_ONBOARDING_OTA_GOLIOTH
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_OTA, NVS_ID_OTA_PSK,
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_OTA_PSK,
                             wifi_setup_attrib[WIFI_SETUP_ATTRIB_OTA_PSK].valuebuffer,
                             strlen(wifi_setup_attrib[WIFI_SETUPATTRIB_OTA_PSK].valuebuffer))) < 0) {
       LOG_ERR("Unable to save Golioth PSK %d", rc);
     }
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_OTA, NVS_ID_OTA_PSK_ID,
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_OTA_PSK_ID,
                             wifi_setup_attrib[WIFI_SETUP_ATTRIB_OTA_PSKID].valuebuffer,
                             strlen(wifi_setup_attrib[WIFI_SETUP_ATTRIB_OTA_PSKID].valuebuffer))) < 0) {
       LOG_ERR("Unable to save Golioth PSK_ID %d", rc);

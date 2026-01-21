@@ -487,14 +487,10 @@ ob_wifi_init(void)
   if(ob_nvs_data_init() < 0) {
     return -1;
   }
-  if(ob_nvs_data_register_ids(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SENTINAL) < 0) {
-    LOG_ERR("Wifi Unable to register nvs ids");
-    return -1;
-  }
 
 #ifdef CONFIG_NET_HOSTNAME_DYNAMIC
   /* Only read the hostname if the app has set dynamic hostnames */
-  if((len = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_HOSTNAME, hostname, sizeof(hostname))) < 0) {
+  if((len = ob_nvs_data_read(NVS_SETTINGS_ID_HOSTNAME, hostname, sizeof(hostname))) < 0) {
     LOG_WRN("Unable to read hostname %d setting to %s", len, net_hostname_get());
   } else {
     len = net_hostname_set(hostname, strlen(hostname));
@@ -554,7 +550,7 @@ ob_wifi_init(void)
   bool isAP;
   while(!done) {
     isAP = false;
-    if((gSSID_len = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID, gSSID, sizeof(gSSID))) < 0) {
+    if((gSSID_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, gSSID, sizeof(gSSID))) < 0) {
       LOG_ERR("Unable to read SSID");
 #ifdef CONFIG_ONBOARDING_PRECONFIG_WIFI
       strncpy(gSSID, CONFIG_ONBOARDING_WIFI_SSID, WIFI_SSID_MAX_LEN);
@@ -565,7 +561,7 @@ ob_wifi_init(void)
 #endif // CONFIG_ONBOARDING_PRECONFIG_WIFI
     }
 
-    if((gPSK_len = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, gPSK, sizeof(gPSK))) < 0) {
+    if((gPSK_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, gPSK, sizeof(gPSK))) < 0) {
       LOG_ERR("Unable to read PSK");
 #ifdef CONFIG_ONBOARDING_PRECONFIG_WIFI
       strncpy(gPSK, CONFIG_ONBOARDING_WIFI_PSK, WIFI_PSK_MAX_LEN);
