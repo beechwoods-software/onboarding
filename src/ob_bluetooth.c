@@ -15,8 +15,8 @@
 #include <zephyr/settings/settings.h>
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi_mgmt.h>
-#include "onboarding_bluetooth.h"
-#include "onboarding_bluetooth_gatt.h"
+#include "ob_bluetooth.h"
+#include "ob_bluetooth_gatt.h"
 #include "ob_wifi.h"
 
 #include <zephyr/logging/log.h>
@@ -208,10 +208,9 @@ static void le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t l
 
 		printk("************************** Connection parameters updated!	\n\
 		Connected to: %s						\n\
-		New Connection Interval: %u				\n\
 		New Slave Latency: %u					\n\
 		New Connection Supervisory Timeout: %u	\n",
-			   addr, info.le.interval, info.le.latency, info.le.timeout);
+			   addr, info.le.latency, info.le.timeout);
 	}
 }
 

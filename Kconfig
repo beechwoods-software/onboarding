@@ -130,8 +130,7 @@ config ONBOARDING_SHELL
 
 config ONBOARDING_NVS
     bool "Use presistant store"
-    select FLASH
-    select NVS
+    select SETTINGS
     default n
 
 

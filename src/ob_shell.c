@@ -256,14 +256,14 @@ static int ssid_handler(const struct shell *sh, size_t argc, char **argv)
   char SSID[WIFI_SSID_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID, SSID, WIFI_SSID_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, SSID, WIFI_SSID_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read SSID");
       return -1;
     }
     SSID[rc] = '\0';
     shell_print(sh, "SSID: %s\n", SSID);
   } else {
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_SSID, argv[1], strlen(argv[1]))) < 0) {
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_SSID, argv[1], strlen(argv[1]))) < 0) {
       LOG_ERR("Unable to save SSID %d", rc);
     } else {
       LOG_DBG("Saved SSID %s", argv[1]);
@@ -287,14 +287,14 @@ static int psk_handler(const struct shell *sh, size_t argc, char **argv)
   char PSK[WIFI_PSK_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, PSK, WIFI_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, PSK, WIFI_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK");
       return -1;
     }
     PSK[rc] = '\0';
     shell_print(sh, "PSK: %s\n", PSK);
   }  else {
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_WIFI, NVS_ID_WIFI_PSK, argv[1], strlen(argv[1]))) < 0) {
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_WIFI_PSK, argv[1], strlen(argv[1]))) < 0) {
       LOG_ERR("Unable to save PSK %d", rc);
     } else {
       LOG_DBG("Saved PSK %s", argv[1]);
@@ -346,14 +346,14 @@ static int golioth_psk_handler(const struct shell *sh, size_t argc, char **argv)
   char PSK[CONFIG_GOLIOTH_PSK_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_DOMAIN_GOLIOTH,  NVS_ID_OTA_PSK, PSK, CONFIG_GOLIOTH_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK, PSK, CONFIG_GOLIOTH_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK");
       return -1;
     }
     PSK[rc] = '\0';
     shell_print(sh, "PSK: %s\n", PSK);
   }  else {
-    if((rc = ob_nvs_data_write(NVS_DOMAIN_GOLIOTH, NVS_ID_OTA_PSK, argv[1], strlen(argv[1]))) < 0) {
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_OTA_PSK, argv[1], strlen(argv[1]))) < 0) {
       LOG_ERR("Unable to save PSK %d", rc);
     } else {
       LOG_DBG("Saved PSK %s", argv[1]);
@@ -367,14 +367,14 @@ static int golioth_psk_id_handler(const struct shell *sh, size_t argc, char **ar
   char PSK_ID[CONFIG_GOLIOTH_PSK_ID_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_ID_OTA_PSK_ID, PSK_ID, CONFIG_GOLIOTH_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK_ID, PSK_ID, CONFIG_GOLIOTH_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK_ID");
       return -1;
     }
     PSK_ID[rc] = '\0';
     shell_print(sh, "PSK_ID: %s\n", PSK_ID);
   }  else {
-    if((rc = ob_nvs_data_write(NVS_ID_OTA_PSK_ID, argv[1], strlen(argv[1]))) < 0) {
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_OTA_PSK_ID, argv[1], strlen(argv[1]))) < 0) {
       LOG_ERR("Unable to save PSK %d", rc);
     } else {
       LOG_DBG("Saved PSK %s", argv[1]);
