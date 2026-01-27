@@ -136,6 +136,15 @@ bool ob_wifi_HasAP(void);
 #define AP_WORK_DELAY K_MSEC(500)
 
 /**
+ * @brief convert a MAC address to a C string
+ * @details not thread safe returns pointer to static buffer
+ *
+ * @param macp Pointer to MAC address
+ * @return Pointer to character buffer with MAC address as a string
+ */
+char * Mac2String(uint8_t * macp);
+
+/**
  * @brief get the MAC address of the devices AP interface
  *
  * @param buffer The buffer to hold the MAC address.

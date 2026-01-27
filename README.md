@@ -1,6 +1,6 @@
 # Onboarding
 
-Onbaording is the process of bringing a device onto a network.
+Onboarding is the process of bringing a device onto a network.
 It is usually the first customer expierence with a product.
 A great first impression will go along way in forgiving future problems.
 

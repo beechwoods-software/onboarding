@@ -123,7 +123,7 @@ int ob_nvs_data_read(uint8_t domain, uint8_t id, void * buffer, int len)
   nvs_id.domain_id.id =  id;
   rc = nvs_read(&fs, nvs_id.id, buffer, len);
   if (rc < 0) {
-    LOG_ERR("read for %d failed: %d", nvs_id.id, errno);
+    LOG_ERR("read for id 0x%x failed: %d", nvs_id.id, errno);
   }
   return rc;
 }
