@@ -229,3 +229,15 @@ int ob_web_server_display_home(int client);
  */
 char * CreateHeader200(int contentlen, const char * title);
 
+/**
+ * @brief Return an http option string
+ *
+ * @return a pointer to an option format as a constant string
+ */
+const char * ob_web_get_option_fmt();
+/**
+ * @brief Return an http selected option string
+ *
+ * @return a pointer to a selected option format as a constant string
+ */
+const char * ob_web_get_selected_option_fmt();

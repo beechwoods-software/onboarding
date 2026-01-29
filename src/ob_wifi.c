@@ -101,7 +101,7 @@ address_add_callback_t address_add_callback = NULL;
  * @brief Converts a binary mac address to a string
  * @param macp A 6 byte array representing the 6 octets of the MAC address
  */
-static char *Mac2String(uint8_t * macp)
+char *Mac2String(uint8_t * macp)
 {
   static char macbuf[18];
   snprintf(macbuf, sizeof(macbuf),
@@ -345,11 +345,6 @@ static void handle_wifi_scan_done(struct net_mgmt_event_callback *cb)
   ssid_init_list();
 }
 
-static void handle_wifi_iface_status(struct net_mgmt_event_callback *cb)
-{
-  const struct wifi_iface_status *status = (const struct wifi_iface_status *)cb->info ;
-  LOG_INF("Iface status for %s", status->ssid);
-}
 
 
 /**
@@ -375,7 +370,7 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
     break;
 
   case NET_EVENT_WIFI_IFACE_STATUS:
-    handle_wifi_iface_status(cb);
+    LOG_INF("Iface status for %s", ((const struct wifi_iface_status *)(cb->info))->ssid);
     break;
 
   case NET_EVENT_WIFI_CONNECT_RESULT:
@@ -390,11 +385,16 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
 #ifndef CONFIG_ESP32_STA_AUTO_DHCP
       net_dhcpv4_start(iface);
 #endif
+#ifdef CONFIG_ONBOARDING_WIFI_AP
+      if(ob_wifi_HasAP()) {
+        ob_wifi_ap_disable();
+      }
+#endif // CONFIG_ONBOARDING_WIFI_AP
     }
     break;
 
   case NET_EVENT_WIFI_DISCONNECT_RESULT:
-    LOG_DBG("Wifi Disonnect result status  0x%x conn_status 0x%x reason 0x%x wifi_status 0x%x", status->status, status->conn_status, status->disconn_reason, status->ap_status);
+    LOG_DBG("Wifi Disconnect result status  0x%x conn_status 0x%x reason 0x%x wifi_status 0x%x", status->status, status->conn_status, status->disconn_reason, status->ap_status);
 #ifdef CONFIG_USE_READY_LED
     ready_led_color(255,0,0);
     ready_led_set(READY_LED_PANIC);
@@ -488,6 +488,8 @@ ob_wifi_init(void)
     return -1;
   }
 
+  wifi_inited=true;
+
 #ifdef CONFIG_NET_HOSTNAME_DYNAMIC
   /* Only read the hostname if the app has set dynamic hostnames */
   if((len = ob_nvs_data_read(NVS_SETTINGS_ID_HOSTNAME, hostname, sizeof(hostname))) < 0) {
@@ -542,49 +544,44 @@ ob_wifi_init(void)
 
 
   k_work_init_delayable(&start_ap_work,bws_start_ap_work);
-#endif // CONFIG_ONBOARDING_WIFI_AP
-
-  wifi_inited=true;
-#ifdef CONFIG_ONBOARDING_WIFI_AP
-  bool done = false;
-  bool isAP;
-  while(!done) {
-    isAP = false;
-    if((gSSID_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, gSSID, sizeof(gSSID))) < 0) {
-      LOG_ERR("Unable to read SSID");
+  // Start the AP
+  ob_wifi_ap_enable();
+  LOG_DBG("AP enabled");
+#endif //CONFIG_ONBOARDING_AP
+  bool needSTA = false;
+  if((gSSID_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, gSSID, sizeof(gSSID))) < 0) {
+    LOG_ERR("Unable to read SSID");
 #ifdef CONFIG_ONBOARDING_PRECONFIG_WIFI
-      strncpy(gSSID, CONFIG_ONBOARDING_WIFI_SSID, WIFI_SSID_MAX_LEN);
-      gSSID_len =strlen(gSSID);
-      LOG_ERR("Setting SSID to %s", gSSID);
-#else
-      isAP = true;
+    strncpy(gSSID, CONFIG_ONBOARDING_WIFI_SSID, WIFI_SSID_MAX_LEN);
+    gSSID_len =strlen(gSSID);
+    LOG_ERR("Setting SSID to %s", gSSID);
+#else // CONFIG_PRECONFIG_WIFI
+    needSTA = true;
 #endif // CONFIG_ONBOARDING_PRECONFIG_WIFI
-    }
+  }
 
-    if((gPSK_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, gPSK, sizeof(gPSK))) < 0) {
-      LOG_ERR("Unable to read PSK");
+  if((gPSK_len = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, gPSK, sizeof(gPSK))) < 0) {
+    LOG_ERR("Unable to read PSK");
 #ifdef CONFIG_ONBOARDING_PRECONFIG_WIFI
-      strncpy(gPSK, CONFIG_ONBOARDING_WIFI_PSK, WIFI_PSK_MAX_LEN);
-      gPSK_len = strlen(gPSK);
-#else
-      isAP = true;
+    strncpy(gPSK, CONFIG_ONBOARDING_WIFI_PSK, WIFI_PSK_MAX_LEN);
+    gPSK_len = strlen(gPSK);
+#else // CONFIG_PRECONFIG_WIFI
+    needSTA = true;
 #endif // CONFIG_ONBOARDING_RECONFIG_WIFI
-    }
-    if(isAP) {
-      // Start the AP
-      k_work_schedule(&start_ap_work, AP_WORK_DELAY);
-      LOG_DBG("waiting on AP");
-      k_sem_take(&wifi_ap_sem, K_FOREVER);
-      LOG_DBG("Ready to try reading address again");
-      done = true;
+  }
+  if( needSTA ) {
+    LOG_DBG("needs STA");
+#ifdef CONFIG_ONBOARDING_WIFI_AP
+    LOG_ERR("take wifi_AP_sem %d %d %p", wifi_ap_sem.count, wifi_ap_sem.limit,  sys_dlist_peek_head(&wifi_ap_sem.wait_q.waitq));
+    k_sem_take(&wifi_ap_sem, K_FOREVER);
+#endif // CONFIG_ONBOARDING_WIFI_AP
+  } else {
+    LOG_DBG("Connecting");
+    if(ob_wifi_connect()< 0) {
+      LOG_ERR("Wifi Connect failed");
     } else {
-      LOG_DBG("Connecting");
-      if(ob_wifi_connect()< 0) {
-        ob_wifi_ap_enable();
-      }
-      done = true;
-
-    }
+      LOG_DBG("Wifi Connect succeeded");
+    }    
   }
 #else // CONFIG_ONBOARDING_WIFI_AP
   LOG_DBG("Connecting");
