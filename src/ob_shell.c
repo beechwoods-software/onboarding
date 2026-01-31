@@ -256,7 +256,7 @@ static int ssid_handler(const struct shell *sh, size_t argc, char **argv)
   char SSID[WIFI_SSID_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, SSID, WIFI_SSID_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_SSID, SSID, WIFI_SSID_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read SSID");
       return -1;
     }
@@ -287,7 +287,7 @@ static int psk_handler(const struct shell *sh, size_t argc, char **argv)
   char PSK[WIFI_PSK_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, PSK, WIFI_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_WIFI_PSK, PSK, WIFI_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK");
       return -1;
     }
@@ -346,7 +346,7 @@ static int golioth_psk_handler(const struct shell *sh, size_t argc, char **argv)
   char PSK[CONFIG_GOLIOTH_PSK_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK, PSK, CONFIG_GOLIOTH_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK, PSK, CONFIG_GOLIOTH_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK");
       return -1;
     }
@@ -367,7 +367,7 @@ static int golioth_psk_id_handler(const struct shell *sh, size_t argc, char **ar
   char PSK_ID[CONFIG_GOLIOTH_PSK_ID_MAX_LEN+1];
   ob_nvs_data_init();
   if(argc < 2) {
-    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK_ID, PSK_ID, CONFIG_GOLIOTH_PSK_MAX_LEN)) < 0) {
+    if((rc = ob_nvs_data_read(NVS_SETTINGS_ID_OTA_PSK_ID, PSK_ID, CONFIG_GOLIOTH_PSK_MAX_LEN)) <= 0) {
       LOG_ERR("Unable to read PSK_ID");
       return -1;
     }

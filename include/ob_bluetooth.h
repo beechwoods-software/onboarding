@@ -2,6 +2,7 @@
  * Copyright 2024 (c) Beechwoods Software, Inc.
  *
  * All Rights Reserved
+ * SPDX-License-Identifier: Apache 2.0
  */
 
 #pragma once

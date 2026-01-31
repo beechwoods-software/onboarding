@@ -401,7 +401,7 @@ static void client_conn_handler(void *ptr1, void *ptr2, void *ptr3)
       if(CONTENT_LENGTH_END == ct_index) {
         doGetLength = true;
         ct_index = 0;
-        LOG_DBG("Found content-length");
+        //        LOG_DBG("Found content-length");
       } else {
         ct_index++;
       }
@@ -1050,6 +1050,18 @@ int ob_ws_register_web_page(const char * pathname, const char * title, ob_web_di
   return 0;
 }
 
+const char * ob_web_get_option_fmt()
+{
+  static const char ob_web_option_fmt[] = "<option value=\"%s\">%s</option>";
+  return ob_web_option_fmt;
+}
+  
+const char * ob_web_get_selected_option_fmt()
+{
+  static const char ob_web_selected_option_fmt[] =  "<option value=\"%s\" selected>%s</option>";
+  return ob_web_selected_option_fmt;
+}
+  
 
 #endif // CONFIG_ONBOARDING_WEB_SERVER
 

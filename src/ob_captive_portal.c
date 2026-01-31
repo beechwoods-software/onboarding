@@ -263,7 +263,7 @@ ob_cp_init()
                                WIFI_SETUP_TITLE,
                                display_wifi_setup_page,
                                post_wifi_setup_page,
-                               PAGE_IS_CAPTIVE_PORTAL);
+                               PAGE_IS_CAPTIVE_PORTAL | PAGE_IS_HOME_PAGE);
   return rc;
 
 }
