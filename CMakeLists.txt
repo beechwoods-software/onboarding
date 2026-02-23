@@ -11,6 +11,7 @@ zephyr_library_add_dependencies(zephyr_generated_headers)
 
 add_subdirectory_ifdef(CONFIG_LIBST25DV st25dv)
 zephyr_library_sources(src/ob_log.c)
+zephyr_library_sources_ifdef(CONFIG_ONBOARDING_REBOOT src/ob_reboot.c)
 zephyr_library_sources_ifdef(CONFIG_ONBOARDING_WIFI src/ob_wifi.c)
 zephyr_library_sources_ifdef(CONFIG_ONBOARDING_NVS src/ob_nvs_data.c)
 zephyr_library_sources_ifdef(CONFIG_ONBOARDING_CAPTIVE_PORTAL src/ob_captive_portal.c)
