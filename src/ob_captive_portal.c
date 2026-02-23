@@ -11,6 +11,7 @@
 #include "ob_web_server.h"
 #include "ob_wifi.h"
 #include "ob_nvs_data.h"
+#include "ob_reboot.h"
 
 #ifdef CONFIG_ONBOARDING_CAPTIVE_PORTAL
 #include <zephyr/logging/log.h>
@@ -245,8 +246,7 @@ static int post_wifi_setup_page(int client, web_page_t * wp)
   ob_web_server_display_home(client);
 
   if(rc >= 0) {
-    ob_wifi_deinit();
-    sys_reboot(SYS_REBOOT_COLD);
+    ob_reboot();
   }
   return rc;
 }

@@ -85,42 +85,55 @@ int ob_nvs_data_write(const char * name, void * buffer, int len)
 
   rc = settings_save_one(name, buffer, len);
     
-  if (rc > 0) {
-      LOG_DBG("Value saved for: %s", name);
-  } else {
+  if (rc < 0) {
       LOG_ERR("Value not found or error (rc=%d)", rc);
+  } else {
+      LOG_DBG("Value saved for: %s", name);
   }
 
 
   return rc;
 }
 
+typedef struct ob_nvs_cb {
+  const char * subtree;
+} ob_nvs_cb_t;
+
+static int ob_nvs_factory_reset_callback(const char * key,
+                                          size_t len,
+                                          settings_read_cb read_cb,
+                                          void *cb_arg,
+                                          void *param)
+{
+
+  int rc;
+  ob_nvs_cb_t * params = (ob_nvs_cb_t *) param;
+  if(NULL != params->subtree) {
+    LOG_DBG("Deleting %s/%s",  params->subtree, key);
+  } else {
+    LOG_DBG("deleting %s", key);
+  }
+
+  rc = settings_delete(key);
+  if(rc < 0) {
+    LOG_ERR("Delete for %s failed %d", key, rc);
+  }
+  return rc;
+}
+                                          
 void ob_nvs_data_factory_reset()
 {
-#if 0    
-  uint16_t i;
   int rc;
-  uint8_t dummy;
-  nvs_id_t id;
-  nvs_record_data_t *rp = &nvs_head;
-  while(rp) {
-    id.domain_id.domain = rp->domain;
-    for(i = 0; i < rp->num; i++) {
-      id.domain_id.id = i;
-      if(0 == id.domain_id.domain) {
-        // Try to delete any external nvs usage (assumes ids are contiguous)
-        if(ob_nvs_data_read(0, i, &dummy, sizeof(dummy)) < 0) {
-          break;
-        }
-      } 
-      rc = nvs_delete(&fs, id.id);
-      if(rc < 0) {
-        LOG_ERR("Delete of id %d failed :%d", i,  errno);
-      }
-    }
-    rp = rp->next;
+  ob_nvs_cb_t cb = {
+    .subtree = NULL
+  };
+
+  rc = settings_load_subtree_direct(cb.subtree, ob_nvs_factory_reset_callback, &cb);
+
+  if(rc) {
+    LOG_ERR("Factory reset failed %d", rc);
   }
-#endif  
+  
 }
 
 #endif // CONFIG_ONBOARDING_NVS

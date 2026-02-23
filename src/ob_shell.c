@@ -12,7 +12,6 @@
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi.h>
 #include <zephyr/mgmt/updatehub.h>
-#include <zephyr/sys/reboot.h>
 #include <version.h>
 #include <zephyr/logging/log.h>
 #include <stdlib.h>
@@ -24,6 +23,10 @@
 #ifdef CONFIG_ONBOARDING_OTA
 #include "ob_ota.h"
 #endif // CONFIG_ONBOARDING_OTA
+#ifdef CONFIG_ONBOARDING_REBOOT
+#include "ob_reboot.h"
+#endif // CONFIG_ONBOARDING_REBOOT
+
 LOG_MODULE_DECLARE(ONBOARDING_LOG_MODULE_NAME, CONFIG_ONBOARDING_LOG_LEVEL);
 
 #define OB_HELP_WIFI_NAME "wifi name [name]"
@@ -384,6 +387,7 @@ static int golioth_psk_id_handler(const struct shell *sh, size_t argc, char **ar
 }  
 #endif // CONFIG_ONBOARDING_OTA_GOLIOTH
 
+#ifdef CONFIG_ONBOARDING_REBOOT
 /**
  * @brief Reboots the device
  *
@@ -398,17 +402,10 @@ static int cmd_reboot(const struct shell * sh, size_t argc, char ** argv)
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
   LOG_WRN("Rebooting");
-#ifdef CONFIG_ONBOARDING_OTA
-  ota_reboot();
-#else // CONFIG_ONBOARDING_OTA
-  
-#ifdef CONFIG_ONBOARDING_WIFI
-  ob_wifi_deinit();
-#endif // CONFIG_ONBOARDING_WIFI
-  sys_reboot(SYS_REBOOT_COLD);
-#endif // CONFIG_ONBOARDING_OTA
+  ob_reboot();
   return 0;
 }
+#endif // CONFIG_ONBOARDING_REBOOT
 
 /**
  * @brief Performs a factor reset on the device.
@@ -513,8 +510,9 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_ob,
 #ifdef CONFIG_ONBOARDING_OTA_GOLIOTH
      SHELL_CMD(golioth, &sub_ob_ota_golioth, "Golioth commands", NULL),
 #endif // CONFIG_ONBOARDING_OTA_GOLIOTH
-                               
+#ifdef CONFIG_ONBOARDING_REBOOT
      SHELL_CMD_ARG(reboot, NULL, OB_HELP_REBOOT, cmd_reboot, 0, 0),
+#endif // CONFIG_ONBOARDING_REBOOT
      SHELL_CMD_ARG(factory_reset, NULL, OB_HELP_FACTORY_RESET, cmd_factory_reset, 0, 0),
      SHELL_SUBCMD_SET_END /* Array terminated. */
      );

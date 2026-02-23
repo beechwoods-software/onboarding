@@ -49,6 +49,7 @@ config ONBOARDING_CAPTIVE_PORTAL
     default n
     depends on ONBOARDING_WEB_SERVER
     depends on ONBOARDING_WIFI_AP
+    depends on ONBOARDING_REBOOT
     help
         Enable a captive portal until a wifi session is established
     
@@ -197,7 +198,13 @@ config ONBOARDING_WIFI_AP_DISABLE
     depends on ONBOARDING_WIFI_AP
     help
         Disable the wifi AP when the wifi station connection is successful
-    
+
+config ONBOARDING_REBOOT
+    bool "Enable reboot"
+    default y
+    help
+        Enable the reboot API
+
 config ONBOARDING_OTA
     bool "Enable OTA"
     default n

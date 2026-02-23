@@ -823,6 +823,7 @@ int ob_wifi_connect(void)
 #endif
   if (wifi_connect_status_succeded) {
     LOG_INF("Wifi Connected");
+    net_if_set_default(iface);
   }
   else {
     LOG_INF("Wifi Failed to Connect");
