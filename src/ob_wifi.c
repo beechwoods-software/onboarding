@@ -11,10 +11,6 @@
 #include <zephyr/net/dhcpv4_server.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/net_if.h>
-#ifdef CONFIG_WIFI_NM
-#include <zephyr/net/wifi_nm.h>
-#endif
-
 
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/net/ethernet_mgmt.h>
@@ -26,6 +22,7 @@
 #endif
 
 LOG_MODULE_DECLARE(ONBOARDING_LOG_MODULE_NAME, CONFIG_ONBOARDING_LOG_LEVEL);
+#include "net_private.h"
 
 /** @brief the callback event structure for wifi events */
 static struct net_mgmt_event_callback wifi_mgmt_cb;
@@ -33,6 +30,9 @@ static struct net_mgmt_event_callback wifi_mgmt_cb;
 static struct net_mgmt_event_callback ipv4_mgmt_cb;
 /** @brief the callback event strucure for ehternet events */
 static struct net_mgmt_event_callback ethernet_mgmt_cb;
+/** @breif callback on wifi connectioin changes */
+static connection_cb_t gConnection_cb = NULL;
+
 /** @brief indicates that the wifi module hs been initialized */
 static bool wifi_inited = false;
 /** @brief indicates whether connection request succeded (including dhcp response) or failed */
@@ -263,10 +263,7 @@ static void ipv4_mgmt_event_handler(struct net_mgmt_event_callback *cb,
   case NET_EVENT_IPV4_ADDR_ADD:
     {
       const struct in_addr * in = (const struct in_addr *)cb->info;
-      char buffer[20];
-
-      zsock_inet_ntop(AF_INET, in, buffer, sizeof(struct in_addr));
-      LOG_DBG("Address add (%s)", buffer);
+      LOG_DBG("Address add (%s)", net_sprint_addr(NET_AF_INET,in->s4_addr));
       if(NULL != address_add_callback) {
         (*address_add_callback)();
       }
@@ -276,9 +273,7 @@ static void ipv4_mgmt_event_handler(struct net_mgmt_event_callback *cb,
   case NET_EVENT_IPV4_ADDR_DEL:
     {
       const struct in_addr * in = (const struct in_addr *)cb->info;
-      char buffer[20];
-      zsock_inet_ntop(AF_INET, in, buffer, sizeof(struct in_addr));
-      LOG_ERR("Address delete (%s)", buffer);
+      LOG_ERR("Address delete (%s)", net_sprint_addr(NET_AF_INET,in->s4_addr));
     }
     break;
 
@@ -375,7 +370,6 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
 
   case NET_EVENT_WIFI_CONNECT_RESULT:
     LOG_DBG("Wifi Connect result %s", iface->config.name);
-
     if (status->status) {
       LOG_ERR("Connect result request failed (%d)(%d:%d:%d)", status->status, status->conn_status, status->disconn_reason, status->ap_status);
       wifi_connect_status_succeded = false;
@@ -391,6 +385,9 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
       }
 #endif // CONFIG_ONBOARDING_WIFI_AP
     }
+    if(NULL != gConnection_cb) {
+      (*gConnection_cb)(mgmt_event, status);
+    }
     break;
 
   case NET_EVENT_WIFI_DISCONNECT_RESULT:
@@ -399,6 +396,9 @@ static void ob_wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
     ready_led_color(255,0,0);
     ready_led_set(READY_LED_PANIC);
 #endif
+    if(NULL != gConnection_cb) {
+      (*gConnection_cb)(mgmt_event, status);
+    }
     wifi_connect_status_succeded = false;
     k_sem_give(&wifi_connect_sem);
     break;
@@ -581,7 +581,7 @@ ob_wifi_init(void)
       LOG_ERR("Wifi Connect failed");
     } else {
       LOG_DBG("Wifi Connect succeeded");
-    }    
+    }
   }
   LOG_DBG("Wifi inited");
   return 0;
@@ -651,7 +651,7 @@ ob_wifi_ap_disable(void)
   }
 
 #endif // CONFIG_NET_DHCPV4_SERVER
-
+  mHasAp = false;
   rc = net_mgmt(NET_REQUEST_WIFI_AP_DISABLE, iface, NULL, 0);
   if (rc < 0) {
     LOG_ERR("AP mode disable failed %s", strerror(errno));
@@ -830,6 +830,10 @@ int ob_wifi_connect(void)
     ret = -1;
   }
   return ret;
+}
+
+void ob_wifi_set_connection_callback(connection_cb_t cb) {
+  gConnection_cb = cb;
 }
 
 

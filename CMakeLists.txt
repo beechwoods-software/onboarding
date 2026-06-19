@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
 
 zephyr_library_named(onboarding)
 zephyr_include_directories(include)
+zephyr_include_directories(${ZEPHYR_BASE}/subsys/net/ip)
 zephyr_library_add_dependencies(zephyr_generated_headers)
 
 add_subdirectory_ifdef(CONFIG_LIBST25DV st25dv)

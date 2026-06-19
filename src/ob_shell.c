@@ -233,7 +233,7 @@ static int wifi_name_handler(const struct shell *sh, size_t argc, char**argv)
 {
   int rc = 0;
   if(argc > 1) {
-    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_HOSTNAME, argv[1], strlen(argv[1]))) < 0) {
+    if((rc = ob_nvs_data_write(NVS_SETTINGS_ID_HOSTNAME, argv[1], strlen(argv[1])+1)) < 0) {
       LOG_ERR("Unable to save HOSTNAME %d", rc);
     } else {
       rc = net_hostname_set(argv[1], strlen(argv[1]));

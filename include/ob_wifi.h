@@ -7,6 +7,9 @@
 #pragma once
 
 #include <stdbool.h>
+#ifdef CONFIG_WIFI_NM
+#include <zephyr/net/wifi_nm.h>
+#endif
 
 /**
  * @struct ssid_item
@@ -128,6 +131,14 @@ void ob_wifi_deinit(void);
  * @return false if AP inactive
  */
 bool ob_wifi_HasAP(void);
+
+typedef void (*connection_cb_t)(uint64_t mgmt_event, const struct wifi_status *);
+
+/**
+ * @brief set wifi connection status callback function
+ * @param cb pointer to the function to be called on wifi connection change;
+ */
+void ob_wifi_set_connection_callback(connection_cb_t cb);
 
 #define AP_WORK_DELAY K_MSEC(500)
 
